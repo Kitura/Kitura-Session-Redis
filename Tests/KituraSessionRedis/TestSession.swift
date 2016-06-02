@@ -104,7 +104,7 @@ class TestSession : XCTestCase, KituraTest {
                         guard (response != nil) else {
                             return
                         }
-                        XCTAssertEqual(response!.statusCode, HTTPStatusCode.noContent, "Session route did not match single path request")                        
+                        XCTAssertEqual(response!.statusCode, HTTPStatusCode.noContent, "Session route did not match single path request")
                         },  headers: ["Cookie": "\(cookie1Name)=\(cookie3value); Zxcv=tyuiop"])
                 })
             })
@@ -119,38 +119,30 @@ class TestSession : XCTestCase, KituraTest {
         
         let redisStore = RedisStore(redisHost: host, redisPort: 6379, redisPassword: password)
         
-        redisStore.setupRedis() { error in
-            guard (error == nil) else {
-                callback (router: nil, error: "ERROR!!! Failed to setup Redis, \(error!.localizedDescription)")
-                return
-            }
-            
-            router.all(middleware: Session(secret: "Very very secret.....", store: redisStore))
-            
-            router.post("/3/session") {request, response, next in
-                request.session?[sessionTestKey] = JSON(sessionTestValue)
-                response.status(.noContent)
-                
-                next()
-            }
-            
-            router.get("/3/session") {request, response, next in
-                response.headers.append("Content-Type", value: "text/plain; charset=utf-8")
-                do {
-                    if let value = request.session?[sessionTestKey].string {
-                        try response.status(.OK).end("\(value)")
-                    }
-                    else {
-                        response.status(.noContent)
-                    }
-                }
-                catch {}
-                next()
-                
-            }            
-            
-            callback(router: router, error: nil)
+        router.all(middleware: Session(secret: "Very very secret.....", store: redisStore))
+        
+        router.post("/3/session") {request, response, next in
+            request.session?[sessionTestKey] = JSON(sessionTestValue)
+            response.status(.noContent)
+            next()
         }
+        
+        router.get("/3/session") {request, response, next in
+            response.headers.append("Content-Type", value: "text/plain; charset=utf-8")
+            do {
+                if let value = request.session?[sessionTestKey].string {
+                    try response.status(.OK).end("\(value)")
+                }
+                else {
+                    response.status(.noContent)
+                }
+            }
+            catch {}
+            next()
+            
+        }
+        
+        callback(router: router, error: nil)
     }
     
     func read(fileName: String) -> String {

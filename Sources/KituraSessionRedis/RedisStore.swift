@@ -17,6 +17,7 @@
 import KituraSys
 import KituraSession
 import SwiftRedis
+import Dispatch
 
 import Foundation
 
@@ -47,7 +48,7 @@ public class RedisStore: Store {
         self.keyPrefix = keyPrefix
         
         redis = Redis()
-        semaphore = dispatch_semaphore_create(0)
+        semaphore = dispatch_semaphore_create(1)
     }
     
     private func setupRedis (callback: RedisSetupCallback) {
