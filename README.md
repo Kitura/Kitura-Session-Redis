@@ -7,49 +7,43 @@ Kitura-Session store using Redis as the backing store
 ![Apache 2](https://img.shields.io/badge/license-Apache2-blue.svg?style=flat)
 
 ## Summary
- [Kitura-Session](https://github.com/IBM-Swift/Kitura-Session) store using Redis as backing store
+ [Kitura-Session](https://github.com/IBM-Swift/Kitura-Session) store using [Redis](http://redis.io/) as the backing store
 
 ## Table of Contents
 * [Swift version](#swift-version)
-* [Example](#example)
+* [API](#api)
 * [License](#license)
 
 ## Swift version
 The latest version of Kitura-Credentials works with the DEVELOPMENT-SNAPSHOT-2016-05-03-a version of the Swift binaries. You can download this version of the Swift binaries by following this [link](https://swift.org/download/). Compatibility with other Swift versions is not guaranteed.
 
 
-## Example
-In order to use Redis as session store, create an instance of `RedisStore`, and pass it to `Session` constructor.
+## API
+In order to use Redis as session store, create an instance of `RedisStore`, and pass it to `Session` constructor:
 
 ```swift
 import KituraSession
 import KituraSessionRedis
 
 let redisStore = RedisStore(redisHost: host, redisPort: port, redisPassword: password)
-let session = Session(secret: "Very very secret.....", store: redisStore)
+let session = Session(secret: <secret>, store: redisStore)
 ```
 
-Now call `setupRedis` method to connect to Redis. Pass your code for router setup as a callback.
+`RedisStore` constructor requires Redis server host and port. The rest of the parameters are optional:
 
-```swift  
-redisStore.setupRedis() { error in
-    guard (error == nil) else {
-        // Error
-    }
-
-    router.all(middleware: session)
-
-    router.post(<path>) {
-      ...
-    }
-
-    router.get(<path>) {
-      ...
-    }                
-}
-
+```swift
+init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:")
 ```
 
+You can set Redis password in `redis.conf` file:
+```
+requirepass <your password>
+```
+The maximum number of databases is also set in `redis.conf` file:
+```
+databases <number of databases>
+```
+The `db` passed to the constructor must be between 0 and this number minus 1.
 
 ## License
 This library is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE.txt).
