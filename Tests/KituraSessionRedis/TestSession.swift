@@ -31,13 +31,18 @@ let cookieDefaultName = "kitura-session-id"
 
 class TestSession : XCTestCase, KituraTest {
     
-    static var allTests : [(String, TestSession -> () throws -> Void)] {
+    static var allTests : [(String, (TestSession) -> () throws -> Void)] {
         return [
                    ("testSimpleSession", testSimpleSession),
                    ("testCookieName", testCookieName),
         ]
     }
     
+    #if os(Linux)
+    typealias PropValue = Any
+    #else
+    typealias PropValue = AnyObject
+    #endif
     
     func testSimpleSession() {
         setupRouter() { router, error in
@@ -122,7 +127,7 @@ class TestSession : XCTestCase, KituraTest {
         router.all(middleware: Session(secret: "Very very secret.....", store: redisStore))
         
         router.post("/3/session") {request, response, next in
-            request.session?[sessionTestKey] = JSON(sessionTestValue)
+            request.session?[sessionTestKey] = JSON(sessionTestValue as PropValue)
             response.status(.noContent)
             next()
         }

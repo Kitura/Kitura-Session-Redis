@@ -54,14 +54,14 @@ public class RedisStore: Store {
     private func setupRedis (callback: RedisSetupCallback) {
         redis.connect(host: self.redisHost, port: self.redisPort) { error in
             guard error == nil else {
-                callback(error: NSError(domain: "SessionRedisDomain", code: 0, userInfo: [NSLocalizedDescriptionKey : "Failed to connect to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"]))
+                callback(error: RedisStore.createError(errorMessage: "Failed to connect to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
                 return
             }
             
             if let redisPassword = self.redisPassword {
                 self.redis.auth(redisPassword) { error in
                     guard error == nil else {
-                        callback(error: NSError(domain: "SessionRedisDomain", code: 0, userInfo: [NSLocalizedDescriptionKey : "Failed to authenticate to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"]))
+                        callback(error: RedisStore.createError(errorMessage: "Failed to authenticate to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
                         return
                     }
                     self.selectRedisDatabase(callback: callback)
@@ -77,7 +77,7 @@ public class RedisStore: Store {
         if db != 0 {
             redis.select(self.db) { error in
                 if let error = error {
-                    callback(error: NSError(domain: "SessionRedisDomain", code: 0, userInfo: [NSLocalizedDescriptionKey :"Failed to select db \(self.db) at the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error.localizedDescription)"]))
+                    callback(error: RedisStore.createError(errorMessage: "Failed to select db \(self.db) at the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error.localizedDescription)"))
                 }
                 else {
                     callback(error: nil)
@@ -89,7 +89,18 @@ public class RedisStore: Store {
         }
     }
     
-    private func runWithSemaphore (runClosure: RunClosure, apiCallback: ((data: NSData?, error: NSError?) -> Void)) {
+    private static func createError(errorMessage: String) -> NSError {
+        #if os(Linux)
+            let userInfo: [String: Any]
+        #else
+            let userInfo: [String: String]
+        #endif
+        userInfo = [NSLocalizedDescriptionKey: errorMessage]
+        return NSError(domain: "SessionRedisDomain", code: 0, userInfo: userInfo)
+
+    }
+    
+    private func runWithSemaphore (runClosure: RunClosure, apiCallback: APICallback) {
         
         dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
         redisExecute(runClosure: runClosure) { redisData, error in
@@ -98,8 +109,7 @@ public class RedisStore: Store {
         }
     }
     
-    private func redisExecute (runClosure: RunClosure,
-                               semCallback: RunWithSemaphoreCallback) {
+    private func redisExecute (runClosure: RunClosure, semCallback: RunWithSemaphoreCallback) {
         if redis.connected == false {
             setupRedis() { error in
                 if let error = error {
@@ -115,43 +125,64 @@ public class RedisStore: Store {
         }
     }
     
-    public func load(sessionId: String, callback apiCallback: (data: NSData?, error: NSError?) -> Void) {
+    public func load(sessionId: String, callback: (data: NSData?, error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.get(self.keyPrefix + sessionId) { redisString, error in
                     semCallback(data: redisString?.asData, error: error)
                 }
-            }, apiCallback: apiCallback)
+            },
+            apiCallback: { data, error in
+                callback(data: data, error: error)
+            }
+        )
+
     }
     
-    public func save(sessionId: String, data: NSData, callback apiCallback: (data: NSData?, error: NSError?) -> Void) {
+    public func save(sessionId: String, data: NSData, callback: (error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.set(self.keyPrefix + sessionId, value: RedisString(data), expiresIn: Double(self.ttl)) { _, error in
                     semCallback(data: nil, error: error)
                 }
-            }, apiCallback: apiCallback)
+            },
+            apiCallback: { _, error in
+                callback(error: error)
+            }
+        )
+
     }
     
-    public func touch(sessionId: String, callback apiCallback: (data: NSData?, error: NSError?) -> Void) {
+    public func touch(sessionId: String, callback: (error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.expire(self.keyPrefix + sessionId, inTime: Double(self.ttl)) { _, error in
                     semCallback(data: nil, error: error)
                 }
-            }, apiCallback: apiCallback)
+            },
+            apiCallback: { _, error in
+                callback(error: error)
+            }
+        )
+
     }
     
-    public func delete(sessionId: String, callback apiCallback: (data: NSData?, error: NSError?) -> Void) {
+    public func delete(sessionId: String, callback: (error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.del(self.keyPrefix + sessionId) { _, error in
                     semCallback(data: nil, error: error)
                 }
-            }, apiCallback: apiCallback)
+            },
+            apiCallback: { _, error in
+                callback(error: error)
+            }
+        )
     }
     
     private typealias RunClosure = ((data: NSData?, error: NSError?) -> Void) -> Void
     private typealias RunWithSemaphoreCallback = (data: NSData?, error: NSError?) -> Void
     private typealias RedisSetupCallback = (error: NSError?) -> Void
+    private typealias APICallback = (data: NSData?, error: NSError?) -> Void
+
 }
