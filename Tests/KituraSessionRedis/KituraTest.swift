@@ -34,16 +34,16 @@ extension KituraTest {
         let requestQueue = Queue(type: .serial)
         
         for asyncTask in asyncTasks {
-            requestQueue.enqueueAsynchronously(asyncTask)
+            requestQueue.queueAsync(asyncTask)
         }
         
-        requestQueue.enqueueSynchronously {
+        requestQueue.queueAsync {
             // blocks test until request completes
             server.stop()
         }
     }
     
-    func performRequest(method: String, path: String, callback: ClientRequest.Callback, headers: [String: String]? = nil, requestModifier: ((ClientRequest) -> Void)? = nil) {
+    func performRequest(method: String, path: String, callback: ClientRequestCallback, headers: [String: String]? = nil, requestModifier: ((ClientRequest) -> Void)? = nil) {
         var allHeaders = [String: String]()
         if  let headers = headers  {
             for  (headerName, headerValue) in headers  {
