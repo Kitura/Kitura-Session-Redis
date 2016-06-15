@@ -23,18 +23,15 @@ import Foundation
 
 public class RedisStore: Store {
     
-    public var ttl : Int
     
-    public var db : Int
+    public let redisHost : String
+    public let redisPort : Int32
+    public let redisPassword : String?
     
-    public var redisHost : String
-    
-    public var redisPort : Int32
-    
-    public var redisPassword : String?
-    
-    public var keyPrefix : String
-    
+    public let keyPrefix : String
+    public let ttl : Int
+    public let db : Int
+
     private var redis: Redis
     
     private let semaphore : dispatch_semaphore_t
