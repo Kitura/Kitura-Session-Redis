@@ -122,7 +122,9 @@ class TestSession : XCTestCase, KituraTest {
         let password = read(fileName: "password.txt")
         let host = read(fileName: "host.txt")
         
-        let redisStore = RedisStore(redisHost: host, redisPort: 6379, redisPassword: password)
+        let connectionParameters = RedisConnectionParameters(host: host, port: 6379, password: password)
+        let options = RedisOptions(ttl: 3500)
+        let redisStore = RedisStore(redisConnectionParameters: connectionParameters, redisDatabaseOptions: options)
         
         router.all(middleware: Session(secret: "Very very secret.....", store: redisStore))
         
