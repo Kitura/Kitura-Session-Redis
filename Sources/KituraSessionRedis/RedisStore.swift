@@ -27,7 +27,7 @@ public class RedisStore: Store {
     private let redis: Redis
     private let semaphore : dispatch_semaphore_t
     
-    init (redisConnectionParameters: RedisConnectionParameters, redisDatabaseOptions: RedisOptions? = nil) {
+    public init (redisConnectionParameters: RedisConnectionParameters, redisDatabaseOptions: RedisOptions? = nil) {
         redis = Redis()
         semaphore = dispatch_semaphore_create(1)
         connectionParameters = redisConnectionParameters

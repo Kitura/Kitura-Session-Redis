@@ -25,14 +25,17 @@ In order to use Redis as session store, create an instance of `RedisStore`, and 
 import KituraSession
 import KituraSessionRedis
 
-let redisStore = RedisStore(redisHost: host, redisPort: port, redisPassword: password)
+let connectionParameters = RedisConnectionParameters(host: host, port: port, password: password)
+let options = RedisOptions(ttl: ttl)
+let redisStore = RedisStore(redisConnectionParameters: connectionParameters, redisDatabaseOptions: options)
+
 let session = Session(secret: <secret>, store: redisStore)
 ```
 
-`RedisStore` constructor requires Redis server host and port. The rest of the parameters are optional:
+`RedisStore` constructor gets two parameters: `RedisConnectionParameters` (host, port, and optional password) and optional `RedisOptions` (ttl, database number, and key prefix):
 
 ```swift
-init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:")
+public init (redisConnectionParameters: RedisConnectionParameters, redisDatabaseOptions: RedisOptions? = nil)
 ```
 
 You can set Redis password in `redis.conf` file:
@@ -43,7 +46,7 @@ The maximum number of databases is also set in `redis.conf` file:
 ```
 databases <number of databases>
 ```
-The `db` passed to the constructor must be between 0 and this number minus 1.
+The `databaseNumber` in  `RedisOptions` must be between 0 and this number minus 1.
 
 ## License
 This library is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE.txt).
