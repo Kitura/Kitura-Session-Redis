@@ -29,21 +29,21 @@ extension KituraTest {
         sleep(10)
     }
     
-    func performServerTest(router: HTTPServerDelegate, asyncTasks: () -> Void...) {
+    func performServerTest(router: ServerDelegate, asyncTasks: () -> Void...) {
         let server = setupServer(port: 8090, delegate: router)
         let requestQueue = Queue(type: .serial)
         
         for asyncTask in asyncTasks {
-            requestQueue.queueAsync(asyncTask)
+            requestQueue.enqueueAsynchronously(asyncTask)
         }
         
-        requestQueue.queueAsync {
+        requestQueue.enqueueAsynchronously {
             // blocks test until request completes
             server.stop()
         }
     }
     
-    func performRequest(method: String, path: String, callback: ClientRequestCallback, headers: [String: String]? = nil, requestModifier: ((ClientRequest) -> Void)? = nil) {
+    func performRequest(method: String, path: String, callback: ClientRequest.Callback, headers: [String: String]? = nil, requestModifier: ((ClientRequest) -> Void)? = nil) {
         var allHeaders = [String: String]()
         if  let headers = headers  {
             for  (headerName, headerValue) in headers  {
@@ -58,7 +58,7 @@ extension KituraTest {
         req.end()
     }
 
-    private func setupServer(port: Int, delegate: HTTPServerDelegate) -> HTTPServer {
+    private func setupServer(port: Int, delegate: ServerDelegate) -> HTTPServer {
         return HTTPServer.listen(port: port, delegate: delegate,
                                  notOnMainQueue:true)
     }
