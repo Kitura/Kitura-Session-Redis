@@ -37,7 +37,11 @@ public class RedisStore: Store {
     
     private var redis: Redis
     
+    #if os(Linux)
     private let semaphore : dispatch_semaphore_t
+    #else
+    private let semaphore : DispatchSemaphore
+    #endif
     
     init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
         self.ttl = ttl
@@ -48,7 +52,11 @@ public class RedisStore: Store {
         self.keyPrefix = keyPrefix
         
         redis = Redis()
-        semaphore = dispatch_semaphore_create(1)
+        #if os(Linux)
+            semaphore = dispatch_semaphore_create(1)
+        #else
+            semaphore = DispatchSemaphore(value: 1)
+        #endif
     }
     
     private func setupRedis (callback: RedisSetupCallback) {
@@ -101,12 +109,19 @@ public class RedisStore: Store {
     }
     
     private func runWithSemaphore (runClosure: RunClosure, apiCallback: APICallback) {
-        
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
-        redisExecute(runClosure: runClosure) { redisData, error in
-            dispatch_semaphore_signal(self.semaphore)
-            apiCallback(data: redisData, error: error)
-        }
+        #if os(Linux)
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
+            redisExecute(runClosure: runClosure) { redisData, error in
+                dispatch_semaphore_signal(self.semaphore)
+                apiCallback(data: redisData, error: error)
+            }
+        #else
+            _ = semaphore.wait(timeout: DispatchTime.distantFuture)
+            redisExecute(runClosure: runClosure) { redisData, error in
+                self.semaphore.signal()
+                apiCallback(data: redisData, error: error)
+            }
+        #endif
     }
     
     private func redisExecute (runClosure: RunClosure, semCallback: RunWithSemaphoreCallback) {
@@ -142,7 +157,12 @@ public class RedisStore: Store {
     public func save(sessionId: String, data: NSData, callback: (error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
-                self.redis.set(self.keyPrefix + sessionId, value: RedisString(data), expiresIn: Double(self.ttl)) { _, error in
+                #if os(Linux)
+                    let value = RedisString(data)
+                #else
+                    let value = RedisString(data as Data)
+                #endif
+                self.redis.set(self.keyPrefix + sessionId, value: value, expiresIn: Double(self.ttl)) { _, error in
                     semCallback(data: nil, error: error)
                 }
             },
