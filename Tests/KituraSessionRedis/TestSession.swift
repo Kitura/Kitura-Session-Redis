@@ -136,7 +136,7 @@ class TestSession : XCTestCase, KituraTest {
             response.headers.append("Content-Type", value: "text/plain; charset=utf-8")
             do {
                 if let value = request.session?[sessionTestKey].string {
-                    try response.status(.OK).end("\(value)")
+                    try response.status(.OK).send("\(value)").end()
                 }
                 else {
                     response.status(.noContent)
@@ -155,8 +155,12 @@ class TestSession : XCTestCase, KituraTest {
         let fileData = NSData(contentsOfFile: "Tests/KituraSessionRedis/\(fileName)")
         XCTAssertNotNil(fileData, "Failed to read in the \(fileName) file")
         
-        let resultString = String(data: fileData!, encoding:NSUTF8StringEncoding)
-        
+        #if os(Linux)
+            let resultString = String(data: fileData!, encoding:NSUTF8StringEncoding)
+        #else
+            let resultString = String(data: fileData! as Data, encoding: String.Encoding.utf8)
+        #endif
+
         guard
             let resultLiteral = resultString
             else {

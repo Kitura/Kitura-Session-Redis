@@ -1,26 +1,30 @@
 branches:
   only:
-  - master
-  - develop
+    - master
+    - develop
+    - /^issue.*$/
+
 notifications:
   slack:
     secure: "0U/dyR6r/xNppoytHDVUF4KYeiWSCTIl9m9WOIj/Z2uxbkgRPeGaAG7/5anEhu4A1G+f5Y4ZxP6lbKno47wa5dHQO/gRgworkJzSxq78/PuIRbvbvf/RLwXnrWDISQ7AOmnatfpkxePVh1LgRi5F+K3hNlHBBt5d3bEdiApsZVugAKZgycmoWdSjgc0UJXph6E5Go2N774N8yZlQ3mdTKMZmJlB1wm67wDcDw8VgQVoXZfDnZcT4YtdkFLb40fwMMppTxqukqM9UqFp3E4qr1oPvnDM0lUcK3PSWKjvGdA+YCbsntHowqpTwiDjKCA0OvL8ump3RTIjL9uWfHVCJ9fxU7U4PmmdEOR3jmDZZNcrEOaRSdaWIKkCk4uEMmLh3wBHyZ87wvXVYm8NZ//Z6ENEHDzZ5rhf+ypoDt+2T/R80rKlcgYmShF6lVbFF/zRFU99Gto8nUF4cSX+xIdgFWR4IVIW4V8n7C/Yoo+iWUNjdqutndveHS+msVvXMmo1ANLW4/G1QZvNDzcTJqXtuBkZWBn5+Kf2GhypmULxZQImYQPMuPFd+sY1XfNRHsL5ktebIYEyxLjk4H9b90CMB4N2UewK3UHngtjRuak+i8ayKK7LXh1MIAQkI0faZThvRnoOGJhMc5pThSpMLJpPrCDGWaIn7ceLayclWxFKSsd8="
+
 matrix:
   include:
-  - os: linux
-    services: docker
-    sudo: required
-  - os: osx
-    osx_image: xcode7.3
-    sudo: required
+    - os: linux
+      services: docker
+      sudo: required
+    - os: osx
+      osx_image: xcode8
+      sudo: required
+
 before_install:
-- git submodule init
-- git submodule update
-- cd Kitura-Build && git checkout $TRAVIS_BRANCH && cd $TRAVIS_BUILD_DIR
+  - git submodule init
+  - git submodule update
+  - cd Kitura-Build && git checkout master && cd $TRAVIS_BUILD_DIR
+
 script:
-- echo ">> Let's build and test the '$TRAVIS_BRANCH' branch for Kitura-Session-Redis."
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./Kitura-Build/run_kitura_ubuntu_container.sh
-  $TRAVIS_BRANCH $TRAVIS_BUILD_DIR Kitura-Session-Redis; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./Kitura-Build/build_kitura_package.sh
-  ; fi
-- echo ">> Build and tests completed. See above for status."
+  - echo ">> Let's build and test the '$TRAVIS_BRANCH' branch for Kitura-Session-Redis."
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./Kitura-Build/run_kitura_ubuntu_container.sh $TRAVIS_BRANCH $TRAVIS_BUILD_DIR Kitura-Session-Redis; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./Kitura-Build/build_kitura_package.sh ; fi
+  - echo ">> Build and tests completed. See above for status."
+
