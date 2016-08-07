@@ -152,14 +152,16 @@ class TestSession : XCTestCase, KituraTest {
     
     func read(fileName: String) -> String {
         // Read in a configuration file into an NSData
-        let fileData = NSData(contentsOfFile: "Tests/KituraSessionRedis/\(fileName)")
-        XCTAssertNotNil(fileData, "Failed to read in the \(fileName) file")
+        let fileData: Data
+        do {
+            fileData = try Data(contentsOf: URL(fileURLWithPath: "Tests/KituraSessionRedis/\(fileName)"))
+        }
+        catch {
+            XCTFail("Failed to read in the \(fileName) file")
+            exit(1)
+        }
         
-        #if os(Linux)
-            let resultString = String(data: fileData!, encoding:NSUTF8StringEncoding)
-        #else
-            let resultString = String(data: fileData! as Data, encoding: String.Encoding.utf8)
-        #endif
+        let resultString = String(data: fileData, encoding: .utf8)
 
         guard
             let resultLiteral = resultString
@@ -167,7 +169,7 @@ class TestSession : XCTestCase, KituraTest {
                 XCTFail("Error in \(fileName).")
                 exit(1)
         }
-        return resultLiteral.trimmingCharacters(in: NSCharacterSet.whitespacesAndNewlines())
+        return resultLiteral.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
     
     
