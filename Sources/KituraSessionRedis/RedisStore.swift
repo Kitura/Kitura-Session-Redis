@@ -140,7 +140,7 @@ public class RedisStore: Store {
         }
     }
     
-    public func load(sessionId: String, callback: (data: NSData?, error: NSError?) -> Void) {
+    public func load(sessionId: String, callback: (data: Data?, error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.get(self.keyPrefix + sessionId) { redisString, error in
@@ -154,14 +154,11 @@ public class RedisStore: Store {
 
     }
     
-    public func save(sessionId: String, data: NSData, callback: (error: NSError?) -> Void) {
+    public func save(sessionId: String, data: Data, callback: (error: NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
-                #if os(Linux)
-                    let value = RedisString(data)
-                #else
-                    let value = RedisString(data as Data)
-                #endif
+                let value = RedisString(data)
+                
                 self.redis.set(self.keyPrefix + sessionId, value: value, expiresIn: Double(self.ttl)) { _, error in
                     semCallback(data: nil, error: error)
                 }
@@ -200,9 +197,9 @@ public class RedisStore: Store {
         )
     }
     
-    private typealias RunClosure = ((data: NSData?, error: NSError?) -> Void) -> Void
-    private typealias RunWithSemaphoreCallback = (data: NSData?, error: NSError?) -> Void
+    private typealias RunClosure = ((data: Data?, error: NSError?) -> Void) -> Void
+    private typealias RunWithSemaphoreCallback = (data: Data?, error: NSError?) -> Void
     private typealias RedisSetupCallback = (error: NSError?) -> Void
-    private typealias APICallback = (data: NSData?, error: NSError?) -> Void
+    private typealias APICallback = (data: Data?, error: NSError?) -> Void
 
 }
