@@ -43,7 +43,7 @@ public class RedisStore: Store {
     private let semaphore : DispatchSemaphore
     #endif
     
-    init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
+    public init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
         self.ttl = ttl
         self.db = db
         self.redisHost = redisHost
