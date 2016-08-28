@@ -16,7 +16,7 @@
 
 import XCTest
 
-@testable import KituraSessionRedisTestSuite
+@testable import KituraSessionRedisTests
 
 
 XCTMain([
