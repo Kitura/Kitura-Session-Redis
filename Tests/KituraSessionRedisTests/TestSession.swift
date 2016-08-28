@@ -116,7 +116,7 @@ class TestSession : XCTestCase, KituraTest {
         }
     }
     
-    func setupRouter(callback: (router: Router?, error: String?) -> Void) {
+    func setupRouter(callback: (Router?, String?) -> Void) {
         let router = Router()
         
         let password = read(fileName: "password.txt")
@@ -147,14 +147,14 @@ class TestSession : XCTestCase, KituraTest {
             
         }
         
-        callback(router: router, error: nil)
+        callback(router, nil)
     }
     
     func read(fileName: String) -> String {
         // Read in a configuration file into an NSData
         let fileData: Data
         do {
-            fileData = try Data(contentsOf: URL(fileURLWithPath: "Tests/KituraSessionRedis/\(fileName)"))
+            fileData = try Data(contentsOf: URL(fileURLWithPath: "Tests/KituraSessionRedisTests/\(fileName)"))
         }
         catch {
             XCTFail("Failed to read in the \(fileName) file")

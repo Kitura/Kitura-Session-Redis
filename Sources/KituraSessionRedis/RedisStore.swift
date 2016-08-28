@@ -14,7 +14,6 @@
  * limitations under the License.
  **/
 
-import KituraSys
 import KituraSession
 import SwiftRedis
 import Dispatch
@@ -37,11 +36,7 @@ public class RedisStore: Store {
     
     private var redis: Redis
     
-    #if os(Linux)
-    private let semaphore : dispatch_semaphore_t
-    #else
-    private let semaphore : DispatchSemaphore
-    #endif
+    private let semaphore = DispatchSemaphore(value: 1)
     
     public init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
         self.ttl = ttl
@@ -52,24 +47,19 @@ public class RedisStore: Store {
         self.keyPrefix = keyPrefix
         
         redis = Redis()
-        #if os(Linux)
-            semaphore = dispatch_semaphore_create(1)
-        #else
-            semaphore = DispatchSemaphore(value: 1)
-        #endif
     }
     
     private func setupRedis (callback: RedisSetupCallback) {
         redis.connect(host: self.redisHost, port: self.redisPort) { error in
             guard error == nil else {
-                callback(error: RedisStore.createError(errorMessage: "Failed to connect to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
+                callback(RedisStore.createError(errorMessage: "Failed to connect to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
                 return
             }
             
             if let redisPassword = self.redisPassword {
                 self.redis.auth(redisPassword) { error in
                     guard error == nil else {
-                        callback(error: RedisStore.createError(errorMessage: "Failed to authenticate to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
+                        callback(RedisStore.createError(errorMessage: "Failed to authenticate to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
                         return
                     }
                     self.selectRedisDatabase(callback: callback)
@@ -85,15 +75,15 @@ public class RedisStore: Store {
         if db != 0 {
             redis.select(self.db) { error in
                 if let error = error {
-                    callback(error: RedisStore.createError(errorMessage: "Failed to select db \(self.db) at the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error.localizedDescription)"))
+                    callback(RedisStore.createError(errorMessage: "Failed to select db \(self.db) at the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error.localizedDescription)"))
                 }
                 else {
-                    callback(error: nil)
+                    callback(nil)
                 }
             }
         }
         else {
-            callback(error: nil)
+            callback(nil)
         }
     }
     
@@ -108,27 +98,19 @@ public class RedisStore: Store {
 
     }
     
-    private func runWithSemaphore (runClosure: RunClosure, apiCallback: APICallback) {
-        #if os(Linux)
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
-            redisExecute(runClosure: runClosure) { redisData, error in
-                dispatch_semaphore_signal(self.semaphore)
-                apiCallback(data: redisData, error: error)
-            }
-        #else
-            _ = semaphore.wait(timeout: DispatchTime.distantFuture)
-            redisExecute(runClosure: runClosure) { redisData, error in
-                self.semaphore.signal()
-                apiCallback(data: redisData, error: error)
-            }
-        #endif
+    private func runWithSemaphore (runClosure: RunClosure, apiCallback: @escaping APICallback) {
+        _ = semaphore.wait(timeout: DispatchTime.distantFuture)
+        redisExecute(runClosure: runClosure) { redisData, error in
+            self.semaphore.signal()
+            apiCallback(redisData, error)
+        }
     }
     
-    private func redisExecute (runClosure: RunClosure, semCallback: RunWithSemaphoreCallback) {
+    private func redisExecute (runClosure: RunClosure, semCallback: @escaping RunWithSemaphoreCallback) {
         if redis.connected == false {
             setupRedis() { error in
                 if let error = error {
-                    semCallback(data: nil, error: error)
+                    semCallback(nil, error)
                 }
                 else {
                     runClosure(semCallback)
@@ -140,66 +122,66 @@ public class RedisStore: Store {
         }
     }
     
-    public func load(sessionId: String, callback: (data: Data?, error: NSError?) -> Void) {
+    public func load(sessionId: String, callback: @escaping (Data?, NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.get(self.keyPrefix + sessionId) { redisString, error in
-                    semCallback(data: redisString?.asData, error: error)
+                    semCallback(redisString?.asData, error)
                 }
             },
             apiCallback: { data, error in
-                callback(data: data, error: error)
+                callback(data, error)
             }
         )
 
     }
     
-    public func save(sessionId: String, data: Data, callback: (error: NSError?) -> Void) {
+    public func save(sessionId: String, data: Data, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 let value = RedisString(data)
                 
                 self.redis.set(self.keyPrefix + sessionId, value: value, expiresIn: Double(self.ttl)) { _, error in
-                    semCallback(data: nil, error: error)
+                    semCallback(nil, error)
                 }
             },
             apiCallback: { _, error in
-                callback(error: error)
+                callback(error)
             }
         )
 
     }
     
-    public func touch(sessionId: String, callback: (error: NSError?) -> Void) {
+    public func touch(sessionId: String, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.expire(self.keyPrefix + sessionId, inTime: Double(self.ttl)) { _, error in
-                    semCallback(data: nil, error: error)
+                    semCallback(nil, error)
                 }
             },
             apiCallback: { _, error in
-                callback(error: error)
+                callback(error)
             }
         )
 
     }
     
-    public func delete(sessionId: String, callback: (error: NSError?) -> Void) {
+    public func delete(sessionId: String, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
                 self.redis.del(self.keyPrefix + sessionId) { _, error in
-                    semCallback(data: nil, error: error)
+                    semCallback(nil, error)
                 }
             },
             apiCallback: { _, error in
-                callback(error: error)
+                callback(error)
             }
         )
     }
     
-    private typealias RunClosure = ((data: Data?, error: NSError?) -> Void) -> Void
-    private typealias RunWithSemaphoreCallback = (data: Data?, error: NSError?) -> Void
-    private typealias RedisSetupCallback = (error: NSError?) -> Void
-    private typealias APICallback = (data: Data?, error: NSError?) -> Void
+    private typealias RunClosure = ((Data?, NSError?) -> Void) -> Void
+    private typealias RunWithSemaphoreCallback = (Data?, NSError?) -> Void
+    private typealias RedisSetupCallback = (NSError?) -> Void
+    private typealias APICallback = (Data?, NSError?) -> Void
 
 }
