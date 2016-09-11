@@ -20,25 +20,43 @@ import Dispatch
 
 import Foundation
 
+// MARK RedisStore
+
+/// An implementation of the `Store` protocol for the storage of `Session` data
+/// using Redis.
 public class RedisStore: Store {
     
-    public var ttl : Int
+    /// The Time to Live value for the stored entries.
+    public var ttl: Int
     
-    public var db : Int
+    /// The number of the Redis database to store the session data in.
+    public var db: Int
     
-    public var redisHost : String
+    /// The host of the Redis server.
+    public var redisHost: String
     
-    public var redisPort : Int32
+    /// The port the Redis server is listening on.
+    public var redisPort: Int32
     
-    public var redisPassword : String?
+    /// The password to use if Redis password authentication is setup on the Redis server.
+    public var redisPassword: String?
     
-    public var keyPrefix : String
+    /// The prefix to be added to the keys of the stored data.
+    public var keyPrefix: String
     
     private var redis: Redis
     
     private let semaphore = DispatchSemaphore(value: 1)
     
-    public init (redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
+    /// Initialize an instance of `RedisStore`.
+    ///
+    /// - Parameter redisHost: The host of the Redis server.
+    /// - Parameter redisPort: The port the Redis server is listening on.
+    /// - Parameter redisPassword: The password to use if Redis password authentication is setup on the Redis server.
+    /// - Parameter ttl: The Time to Live value for the stored entries.
+    /// - Parameter db: The number of the Redis database to store the session data in.
+    /// - Parameter keyPrefix: The prefix to be added to the keys of the stored data.
+    public init(redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
         self.ttl = ttl
         self.db = db
         self.redisHost = redisHost
@@ -49,7 +67,7 @@ public class RedisStore: Store {
         redis = Redis()
     }
     
-    private func setupRedis (callback: RedisSetupCallback) {
+    private func setupRedis(callback: RedisSetupCallback) {
         redis.connect(host: self.redisHost, port: self.redisPort) { error in
             guard error == nil else {
                 callback(RedisStore.createError(errorMessage: "Failed to connect to the Redis server at \(self.redisHost):\(self.redisPort). Error=\(error!.localizedDescription)"))
@@ -71,7 +89,7 @@ public class RedisStore: Store {
         }
     }
     
-    private func selectRedisDatabase (callback : RedisSetupCallback) {
+    private func selectRedisDatabase(callback : RedisSetupCallback) {
         if db != 0 {
             redis.select(self.db) { error in
                 if let error = error {
@@ -98,7 +116,7 @@ public class RedisStore: Store {
 
     }
     
-    private func runWithSemaphore (runClosure: RunClosure, apiCallback: @escaping APICallback) {
+    private func runWithSemaphore(runClosure: RunClosure, apiCallback: @escaping APICallback) {
         _ = semaphore.wait(timeout: DispatchTime.distantFuture)
         redisExecute(runClosure: runClosure) { redisData, error in
             self.semaphore.signal()
@@ -106,7 +124,7 @@ public class RedisStore: Store {
         }
     }
     
-    private func redisExecute (runClosure: RunClosure, semCallback: @escaping RunWithSemaphoreCallback) {
+    private func redisExecute(runClosure: RunClosure, semCallback: @escaping RunWithSemaphoreCallback) {
         if redis.connected == false {
             setupRedis() { error in
                 if let error = error {
@@ -122,6 +140,10 @@ public class RedisStore: Store {
         }
     }
     
+    /// Load the session data.
+    ///
+    /// - Parameter sessionId: The ID of the session.
+    /// - Parameter callback: The closure to invoke once the session data is fetched.
     public func load(sessionId: String, callback: @escaping (Data?, NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
@@ -136,6 +158,11 @@ public class RedisStore: Store {
 
     }
     
+    /// Save the session data.
+    ///
+    /// - Parameter sessionId: The ID of the session.
+    /// - Parameter data: The data to save.
+    /// - Parameter callback: The closure to invoke once the session data is saved.
     public func save(sessionId: String, data: Data, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
@@ -152,6 +179,10 @@ public class RedisStore: Store {
 
     }
     
+    /// Touch the session data.
+    ///
+    /// - Parameter sessionId: The ID of the session.
+    /// - Parameter callback: The closure to invoke once the session data is touched.
     public func touch(sessionId: String, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
@@ -166,6 +197,10 @@ public class RedisStore: Store {
 
     }
     
+    /// Delete the session data.
+    ///
+    /// - Parameter sessionId: The ID of the session.
+    /// - Parameter callback: The closure to invoke once the session data is deleted.
     public func delete(sessionId: String, callback: @escaping (NSError?) -> Void) {
         runWithSemaphore (
             runClosure: { semCallback in
