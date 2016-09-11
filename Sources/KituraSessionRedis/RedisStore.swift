@@ -22,23 +22,23 @@ import Foundation
 
 // MARK RedisStore
 
-/// An implementation of `Store` protocol for the storage of `Session` data
+/// An implementation of the `Store` protocol for the storage of `Session` data
 /// using Redis.
 public class RedisStore: Store {
     
     /// The Time to Live value for the stored entries.
     public var ttl: Int
     
-    /// The Redis database number.
+    /// The number of the Redis database to store the session data in.
     public var db: Int
     
-    /// The Redis host.
+    /// The host of the Redis server.
     public var redisHost: String
     
-    /// The Redis port.
+    /// The port the Redis server is listening on.
     public var redisPort: Int32
     
-    /// The Redis password.
+    /// The password to use if Redis password authentication is setup on the Redis server.
     public var redisPassword: String?
     
     /// The prefix to be added to the keys of the stored data.
@@ -50,11 +50,11 @@ public class RedisStore: Store {
     
     /// Initialize an instance of `RedisStore`.
     ///
-    /// - Parameter redisHost: The Redis host.
-    /// - Parameter redisPort: The Redis port.
-    /// - Parameter redisPassword: The Redis password.
+    /// - Parameter redisHost: The host of the Redis server.
+    /// - Parameter redisPort: The port the Redis server is listening on.
+    /// - Parameter redisPassword: The password to use if Redis password authentication is setup on the Redis server.
     /// - Parameter ttl: The Time to Live value for the stored entries.
-    /// - Parameter db: The Redis database number.
+    /// - Parameter db: The number of the Redis database to store the session data in.
     /// - Parameter keyPrefix: The prefix to be added to the keys of the stored data.
     public init(redisHost: String, redisPort: Int32, redisPassword: String?=nil, ttl: Int = 3600, db: Int = 0, keyPrefix: String = "s:") {
         self.ttl = ttl
