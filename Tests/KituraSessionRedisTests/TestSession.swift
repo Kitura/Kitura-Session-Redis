@@ -153,11 +153,22 @@ class TestSession : XCTestCase, KituraTest {
     func read(fileName: String) -> String {
         // Read in a configuration file into an NSData
         let fileData: Data
+        
+        let sourceFileName = NSString(string: #file)
+        let pathToTestsPrefixRange: NSRange
+        let lastSlash = sourceFileName.range(of: "/", options: .backwards)
+        if  lastSlash.location != NSNotFound {
+            pathToTestsPrefixRange = NSMakeRange(0, lastSlash.location+1)
+        } else {
+            pathToTestsPrefixRange = NSMakeRange(0, sourceFileName.length)
+        }
+        let pathToTests = sourceFileName.substring(with: pathToTestsPrefixRange)
+        
         do {
-            fileData = try Data(contentsOf: URL(fileURLWithPath: "Tests/KituraSessionRedisTests/\(fileName)"))
+            fileData = try Data(contentsOf: URL(fileURLWithPath: "\(pathToTests)\(fileName)"))
         }
         catch {
-            XCTFail("Failed to read in the \(fileName) file")
+            XCTFail("Failed to read in the \(fileName) file [\(pathToTests)\(fileName)]")
             exit(1)
         }
         
