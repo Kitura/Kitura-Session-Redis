@@ -74,7 +74,7 @@ class TestSession : XCTestCase, KituraTest {
                             guard (body != nil) else {
                                 return
                             }
-                            XCTAssertEqual(body!, sessionTestValue, "Body \(body) is not equal to \(sessionTestValue)")
+                            XCTAssertEqual(body!, sessionTestValue, "Body \(String(describing: body)) is not equal to \(sessionTestValue)")
                         }
                         catch{
                             XCTFail("No response body")
