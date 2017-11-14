@@ -1,3 +1,5 @@
+// swift-tools-version:4.0
+
 /**
  * Copyright IBM Corporation 2016, 2017
  *
@@ -19,7 +21,11 @@ import PackageDescription
 let package = Package(
     name: "Kitura-Session-Redis",
     dependencies: [
-        .Package(url: "https://github.com/IBM-Swift/Kitura-Session.git", majorVersion: 1, minor: 7),
-        .Package(url: "https://github.com/IBM-Swift/Kitura-redis.git", majorVersion: 1, minor: 7)
+        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", .upToNextMinor(from: "2.0.0")),
+        .package(url: "https://github.com/IBM-Swift/Kitura-redis.git", .upToNextMinor(from: "1.8.0")),
+    ],
+    targets: [
+        .target(name: "KituraSessionRedis", dependencies: ["KituraSession", "SwiftRedis"]),
+        .testTarget(name: "KituraSessionRedisTests", dependencies: ["KituraSessionRedis"])
     ]
 )
