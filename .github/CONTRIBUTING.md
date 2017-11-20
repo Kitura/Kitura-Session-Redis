@@ -4,7 +4,7 @@ We welcome contributions, and request you follow these guidelines.
 
  - [Raising issues](#raising-issues)
  - [Contributor License Agreement](#contributor-license-agreement)
- - [Guidelines](#guidelines)
+ - [Coding Standards](#coding-standards)
 
 ## Raising issues
 
@@ -23,9 +23,10 @@ This clarifies the intellectual property license granted with any contribution. 
 Contributor as well as the protection of IBM and its customers; it does not
 change your rights to use your own Contributions for any other purpose.
 
-### Guidelines
+### Coding standards
 
-Please ensure you follow these guidelines:
+Please ensure you follow the coding standards used throughout the existing
+code base, which include:
 
  - All files must have the Apache license in the header.
  - All PRs must have passing builds.
