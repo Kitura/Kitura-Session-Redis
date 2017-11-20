@@ -13,17 +13,9 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-    - os: linux
-      dist: trusty
-      sudo: required
-      env: SWIFT_SNAPSHOT=4.0-DEVELOPMENT-SNAPSHOT-2017-06-29-a
     - os: osx
-      osx_image: xcode8.3
+      osx_image: xcode9.1
       sudo: required
-    - os: osx
-      osx_image: xcode9
-      sudo: required
-      env: SWIFT_SNAPSHOT=4.0-DEVELOPMENT-SNAPSHOT-2017-06-29-a
 
 before_install:
   - git clone https://github.com/IBM-Swift/Kitura-CI.git
