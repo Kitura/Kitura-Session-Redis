@@ -45,5 +45,33 @@ databases <number of databases>
 ```
 The `db` passed to the constructor must be between 0 and this number minus 1.
 
+## Swift Test Setup
+
+To run swift test for `Kitura-Session-Redis` you must first set up Redis.
+From the Kitura-Session-Redis directory, run the following commands:
+
+#### MacOS
+```
+brew install redis --build-from-source || brew outdated redis || brew upgrade redis
+export REDIS_CONF_FILE=/usr/local/etc/redis.conf
+password=$(head -n 1 “/Tests/KituraSessionRedisTests/password.txt")
+sudo perl -pi -e "s/# requirepass foobared/requirepass ${password}/g" $REDIS_CONF_FILE
+redis-server $REDIS_CONF_FILE
+```
+
+#### Linux
+```
+sudo apt-get update -y
+sudo apt-get install -y redis-server
+export REDIS_CONF_FILE=/etc/redis/redis.conf
+sudo chmod go+x /etc/redis/
+sudo chmod go+r $REDIS_CONF_FILE
+password=$(head -n 1 “/Tests/KituraSessionRedisTests/password.txt")
+sudo perl -pi -e "s/# requirepass foobared/requirepass ${password}/g" $REDIS_CONF_FILE
+sudo service redis-server restart
+```
+
+Then run  `swift test`.
+
 ## License
 This library is licensed under Apache 2.0. Full license text is available in [LICENSE](LICENSE.txt).
