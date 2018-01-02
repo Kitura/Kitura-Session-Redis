@@ -20,10 +20,6 @@ import PackageDescription
 
 let package = Package(
     name: "Kitura-Session-Redis",
-    dependencies: [
-        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", from: "2.1.0"),
-        .package(url: "https://github.com/IBM-Swift/Kitura-redis.git", from: "2.0.0"),
-    ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
@@ -31,6 +27,12 @@ let package = Package(
             targets: ["KituraSessionRedis"]
         )
     ],
+    
+    dependencies: [
+        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", from: "2.1.0"),
+        .package(url: "https://github.com/IBM-Swift/Kitura-redis.git", from: "2.0.0"),
+    ],
+    
     targets: [
         .target(name: "KituraSessionRedis", dependencies: ["KituraSession", "SwiftRedis"]),
         .testTarget(name: "KituraSessionRedisTests", dependencies: ["KituraSessionRedis"])
