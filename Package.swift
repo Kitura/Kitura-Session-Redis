@@ -21,7 +21,7 @@ import PackageDescription
 let package = Package(
     name: "Kitura-Session-Redis",
     dependencies: [
-        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", .upToNextMinor(from: "2.0.0")),
+        .package(url: "https://github.com/IBM-Swift/Kitura-Session.git", .upToNextMinor(from: "2.1.0")),
         .package(url: "https://github.com/IBM-Swift/Kitura-redis.git", .upToNextMinor(from: "2.0.0")),
     ],
     targets: [
