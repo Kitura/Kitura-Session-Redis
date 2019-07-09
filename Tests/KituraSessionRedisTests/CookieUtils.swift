@@ -19,6 +19,12 @@ import KituraNet
 import Foundation
 import XCTest
 
+#if swift(>=4.1)
+  #if canImport(FoundationNetworking)
+    import FoundationNetworking
+  #endif
+#endif
+
 class CookieUtils {
     
     static func cookieFrom(response: ClientResponse, named: String) -> (HTTPCookie?, String?) {
@@ -39,7 +45,7 @@ class CookieUtils {
                             properties[HTTPCookiePropertyKey.value] = nameValue[1]
                             
                             for  part in parts[1..<parts.count] {
-                                var pieces = part.components(separatedBy: "=")
+                                let pieces = part.components(separatedBy: "=")
                                 let piece = pieces[0].lowercased()
                                 switch(piece) {
                                 case "secure", "httponly":
