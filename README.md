@@ -1,16 +1,16 @@
 <p align="center">
-    <a href="http://kitura.io/">
-        <img src="https://raw.githubusercontent.com/IBM-Swift/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
+    <a href="http://kitura.dev/">
+        <img src="https://raw.githubusercontent.com/Kitura/Kitura/master/Sources/Kitura/resources/kitura-bird.svg?sanitize=true" height="100" alt="Kitura">
     </a>
 </p>
 
 
 <p align="center">
-    <a href="http://www.kitura.io/">
+    <a href="http://www.kitura.dev/">
     <img src="https://img.shields.io/badge/docs-kitura.io-1FBCE4.svg" alt="Docs">
     </a>
-    <a href="https://travis-ci.org/IBM-Swift/Kitura-Session-Redis">
-    <img src="https://travis-ci.org/IBM-Swift/Kitura-Session-Redis.svg?branch=master" alt="Build Status - Master">
+    <a href="https://travis-ci.org/Kitura/Kitura-Session-Redis">
+    <img src="https://travis-ci.org/Kitura/Kitura-Session-Redis.svg?branch=master" alt="Build Status - Master">
     </a>
     <img src="https://img.shields.io/badge/os-macOS-green.svg?style=flat" alt="macOS">
     <img src="https://img.shields.io/badge/os-linux-green.svg?style=flat" alt="Linux">
@@ -24,7 +24,7 @@
 Kitura-Session store using Redis as the backing store
 
 ## Summary
- [Kitura-Session](https://github.com/IBM-Swift/Kitura-Session) store using [Redis](http://redis.io/) as the backing store
+ [Kitura-Session](https://github.com/Kitura/Kitura-Session) store using [Redis](http://redis.io/) as the backing store
 
 ## Table of Contents
 * [Swift version](#swift-version)
