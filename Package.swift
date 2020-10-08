@@ -28,8 +28,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/Kitura/Kitura-Session.git", from: "3.0.0"),
-        .package(url: "https://github.com/Kitura/Kitura-redis.git", from: "2.0.0"),
+        .package(url: "https://github.com/Kitura/Kitura-Session.git", from: "3.3.200"),
+        .package(url: "https://github.com/Kitura/Kitura-redis.git", from: "2.9.200"),
     ],
     
     targets: [
